@@ -22,10 +22,16 @@ jobs:
             zlib1g-dev libncurses-dev libncursesw5-dev \
             libtinfo-dev cmake libffi-dev libssl-dev \
             build-essential ccache
-      - name: Install buildozer
+      - name: Install buildozer (pinned toolchain)
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install buildozer cython==0.29.36
+          # KRITIK: python-for-android'i acikca pinliyoruz.
+          # Pinlenmemis p4a, "pip install buildozer" her calistiginda
+          # en guncel surumu ceker ve bu surum zamanla daha yeni bir
+          # CPython hedefleyebilir (su an: 3.14). Kivy 2.3.0 + eski
+          # Cython ikilisi bu kadar yeni bir CPython'un C-API
+          # degisiklikleriyle uyumlu degil -> "too few arguments" hatasi.
+          pip install buildozer==1.5.0 "python-for-android==2024.1.21" cython==0.29.36
       - name: Cache buildozer global
         uses: actions/cache@v4
         with:
