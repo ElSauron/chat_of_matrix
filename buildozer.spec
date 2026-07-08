@@ -21,7 +21,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 version = 1.0
 
 # (list) Application requirements
-requirements = python3,kivy==2.3.0,openssl,requests,urllib3,idna,certifi,charset-normalizer,pyjnius
+requirements = python3,kivy==2.3.0,openssl,certifi,websocket-client
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
