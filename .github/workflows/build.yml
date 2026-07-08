@@ -39,9 +39,8 @@ jobs:
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
       - name: Build APK (debug)
         run: |
-          buildozer android clean
+          [ -d ".buildozer/android/platform/python-for-android" ] && buildozer android clean || echo "Platform bulunamadı, temizliğe gerek yok."
           buildozer -v android debug
-          ls -R bin/
       - name: Upload APK
         uses: actions/upload-artifact@v4
         if: always()
