@@ -39,11 +39,7 @@ jobs:
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
       - name: Build APK (debug)
         run: |
-          buildozer android clean
-          find /home/runner/.buildozer -name "sdkmanager"
-          yes | buildozer android update || true
-          export BUILDOZER_ACCEPT_SDK_LICENSE=1
-          buildozer -v android debug
+         buildozer -v android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         if: always()
