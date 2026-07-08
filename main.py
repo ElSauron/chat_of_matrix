@@ -28,14 +28,45 @@ import traceback
 import sys
 import os
 
+# ─────────────────────────────────────────────
+#  CRASH LOGGING (Android scoped-storage safe)
+# ─────────────────────────────────────────────
+# /sdcard/ Android 10+ (API 29+) scoped storage nedeniyle izinsiz
+# yazilamiyor -> orada bir PermissionError patlar ve excepthook
+# icinde SESSIZCE yutulur, hicbir log dosyasi olusmaz.
+# Uygulamanin kendi private dizini (bu .py dosyasinin bulundugu yer)
+# HICBIR izin istemeden her zaman yazilabilir, o yuzden oraya yaziyoruz.
+LOG_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_PATH = os.path.join(LOG_DIR, "error.txt")
+
+
 def report_error(exc_type, exc_value, exc_traceback):
     error_text = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    # Telefonun ana dizinine error.txt yazar
-    with open("/sdcard/error.txt", "w") as f:
-        f.write(error_text)
+    try:
+        with open(LOG_PATH, "w") as f:
+            f.write(error_text)
+    except Exception:
+        # Log yazimi bile basarisiz olursa en azindan stderr'e dussun
+        pass
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
+
+def report_thread_error(args):
+    # threading.Thread icinde firlatilan exception'lar sys.excepthook'a
+    # DUSMEZ (Python 3.8+ ayri bir threading.excepthook kullanir).
+    # _connect_thread / _recv_loop gibi thread'lerdeki beklenmedik
+    # hatalari da yakalamak icin bunu da baglıyoruz.
+    error_text = "".join(traceback.format_exception(
+        args.exc_type, args.exc_value, args.exc_traceback))
+    try:
+        with open(LOG_PATH, "w") as f:
+            f.write(error_text)
+    except Exception:
+        pass
+
+
 sys.excepthook = report_error
+threading.excepthook = report_thread_error
 
 # ─────────────────────────────────────────────
 #  SERVER CONFIG
@@ -116,8 +147,13 @@ class MatrixRain(Widget):
                         alpha = max(0.0, 1.0 - i * self.FADE)
                         green = max(0.15, 0.9 - i * 0.06)
                         Color(0, green, 0, alpha)
+                    # NOT: font_name="RobotoMono-Regular" KALDIRILDI.
+                    # O font APK'ya paketlenmemisti; Kivy onu bulamayinca
+                    # her tick'te exception atip uygulamayi 4-5 saniye
+                    # icinde crash ettiriyordu. font_name vermeyince Kivy
+                    # kendi bundled varsayilan fontunu (Roboto) kullanir,
+                    # bu APK'da her zaman mevcuttur.
                     lbl = CoreLabel(text=ch, font_size=sp(11),
-                                    font_name="RobotoMono-Regular",
                                     color=(1, 1, 1, 1))
                     lbl.refresh()
                     texture = lbl.texture
