@@ -169,11 +169,16 @@ from kivy.core.text import Label as CoreLabel
 # ─────────────────────────────────────────────
 #  REUSABLE STYLED WIDGETS
 # ─────────────────────────────────────────────
-def green_label(text="", font_size=sp(14), bold=False, halign="left", **kw):
+def green_label(text="", font_size=sp(14), bold=False, halign="left", markup=True, **kw):
+    # NOT: markup artik acik parametre. Eskiden Label()'a hem burada
+    # literal olarak hem de caller'in **kw'si icinden (ornegin
+    # nick_lbl = green_label(..., markup=True, ...) cagrisinda) iki kere
+    # gidiyordu -> "got multiple values for keyword argument 'markup'"
+    # TypeError'i ile uygulama acilista crash oluyordu.
     lbl = Label(
         text=text, font_size=font_size, bold=bold,
         color=GREEN_BRIGHT, halign=halign,
-        markup=True, **kw
+        markup=markup, **kw
     )
     lbl.bind(size=lambda l, s: setattr(l, 'text_size', s))
     return lbl
