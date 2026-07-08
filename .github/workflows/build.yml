@@ -39,11 +39,9 @@ jobs:
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
       - name: Build APK (debug)
         run: |
-          # SDK lisanslarını otomatik onaylar
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          echo y | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          
+          buildozer android debug || true
+          export BUILDOZER_ACCEPT_SDK_LICENSE=1
+          buildozer -v android debug
           # Derlemeyi başlat
           buildozer -v android debug
       - name: Upload APK
