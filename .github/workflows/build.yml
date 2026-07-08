@@ -39,7 +39,12 @@ jobs:
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
       - name: Build APK (debug)
         run: |
-          [ -d ".buildozer/android/platform/python-for-android" ] && buildozer android clean || echo "Platform bulunamadı, temizliğe gerek yok."
+          # SDK lisanslarını otomatik onaylar
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          echo y | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          
+          # Derlemeyi başlat
           buildozer -v android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
