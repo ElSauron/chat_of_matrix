@@ -3,52 +3,43 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install system dependencies
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip openjdk-17-jdk \
-            autoconf automake libtool libltdl-dev pkg-config \
-            zlib1g-dev libncurses-dev libncursesw5-dev \
-            libtinfo-dev cmake libffi-dev libssl-dev \
-            build-essential ccache
-      - name: Install buildozer (pinned toolchain)
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          # KRITIK: python-for-android'i acikca pinliyoruz.
-          # Pinlenmemis p4a, "pip install buildozer" her calistiginda
-          # en guncel surumu ceker ve bu surum zamanla daha yeni bir
-          # CPython hedefleyebilir (su an: 3.14). Kivy 2.3.0 + eski
-          # Cython ikilisi bu kadar yeni bir CPython'un C-API
-          # degisiklikleriyle uyumlu degil -> "too few arguments" hatasi.
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf automake libtool libltdl-dev pkg-config zlib1g-dev libncurses-dev libncursesw5-dev libtinfo-dev cmake libffi-dev libssl-dev build-essential ccache
+          pip install --upgrade pip setuptools wheel
           pip install buildozer==1.5.0 "python-for-android==2024.1.21" cython==0.29.36
-      - name: Cache buildozer global
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildozer
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
-      - name: Build APK (debug)
+
+      - name: Build APK
         run: |
-         buildozer -v android debug
+          # Buildozer'in lisansları otomatik kabul etmesini sağla
+          export BUILDOZER_ACCEPT_SDK_LICENSE=1
+          # Temizleme komutunu kaldırıp doğrudan derlemeye geç
+          buildozer -v android debug
+
       - name: Upload APK
+        if: success() # Sadece build başarılı olursa çalışır
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: chat-of-matrix-apk
           path: bin/*.apk
-      - name: Upload build log
+
+      - name: Upload logs if build failed
+        if: failure() # Sadece build hata verirse çalışır
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: build-log
-          path: build.log
+          path: .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/build.log
