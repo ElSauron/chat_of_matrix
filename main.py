@@ -24,6 +24,18 @@ from kivy.core.window import Window
 from kivy.metrics import dp, sp
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, ListProperty, NumericProperty
+import traceback
+import sys
+import os
+
+def report_error(exc_type, exc_value, exc_traceback):
+    error_text = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    # Telefonun ana dizinine error.txt yazar
+    with open("/sdcard/error.txt", "w") as f:
+        f.write(error_text)
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+sys.excepthook = report_error
 
 # ─────────────────────────────────────────────
 #  SERVER CONFIG
